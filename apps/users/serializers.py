@@ -29,3 +29,21 @@ class UserAuthSerializer(serializers.ModelSerializer):
 
 class SmSRequestSerializer(serializers.Serializer):
     phone = serializers.CharField(min_length=11, max_length=12)
+
+
+class ActivateReferralCodeSerializer(serializers.Serializer):
+    code = serializers.CharField(min_length=6, max_length=6)
+    phone = serializers.CharField(min_length=11, max_length=12)
+
+    def validate_code(self, code):
+        if not get_user_model().objects.filter(referral_code__code=code).exists():
+            raise serializers.ValidationError('Реферальный код не существует')
+        return code
+
+    def validate_phone(self, phone):
+        if not get_user_model().objects.filter(phone=phone).exists():
+            raise serializers.ValidationError('Пользователь не найден')
+
+        if get_user_model().objects.get(phone=phone).referral_code_used:
+            raise serializers.ValidationError('Вы уже активировали реферальный код')
+        return phone

@@ -1,0 +1,68 @@
+{% extends 'main/base.html' %}
+{% block content %}
+    <div class="row w-50 h-100 m-auto align-content-center">
+        {# djlint: off #}
+        <div class="col-12" 
+        x-data="{ 
+            auth_stage: 'sms_request', 
+            phone: '' ,
+            sms: '',
+            sms_simulate: '',
+            smsRequest () {
+                this.auth_stage = 'auth_user'
+                fetch('{% url "users:sms_request" %}', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    }, 
+                    body: JSON.stringify({
+                        phone: this.phone
+                    })
+                })
+                .then(response => response.json())
+                .then(json => this.sms_simulate = json.sms)
+                .then(() => alert('Код из СМС: ' + this.sms_simulate))
+            },
+            async authUser () {
+                let response = await fetch('{% url "users:v1-list" %}', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    }, 
+                    body: JSON.stringify({
+                        phone: this.phone,
+                        sms: this.sms
+                    })
+                })
+                response = await response.json()
+                alert(JSON.stringify(response))
+                if ('token' in response) {
+                    if (this.phone.startsWith('+7')) {
+                        this.phone = '%2B' + this.phone.slice(1)
+                    }
+                    window.location.replace('{% url "main:profile" %}' + '?phone=' + this.phone)
+                } 
+            }
+        }">
+        {# djlint: off #}
+            <form x-show="auth_stage === 'sms_request'" @submit.prevent="smsRequest">
+                {% csrf_token %}
+                <input type="tel" name="phone" id="phone" class="form-control" placeholder="Номер телефона" x-model="phone">
+                <button type="submit" class="btn btn-primary mt-3">Получить код</button>
+            </form>
+            <form x-show="auth_stage === 'auth_user'" @submit.prevent="authUser">
+                {% csrf_token %}
+                <input type="tel"
+                       name="phone"
+                       id="phone"
+                       class="form-control"
+                       placeholder="Номер телефона"
+                       x-model="phone">
+                       <input type="text" name="sms" id="sms" class="form-control mt-3" placeholder="Код из СМС" x-model="sms">
+                <button type="submit" class="btn btn-primary mt-3">Зарегистрироваться</button>
+            </form>
+        </div>
+    </div>
+{% endblock content %}

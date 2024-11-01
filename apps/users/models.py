@@ -54,6 +54,7 @@ class User(AbstractUser):
         blank=True,
         related_name='invited_users',
     )
+    invite_code_used = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS = []
@@ -90,7 +91,7 @@ class UserReferralCode(models.Model):
         verbose_name_plural = _('Реферальные коды')
 
     def __str__(self):
-        return f'{self.user} - {self.code}'
+        return f'{self.code}'
 
 
 @receiver(post_save, sender=User)

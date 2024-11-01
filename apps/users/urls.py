@@ -9,5 +9,6 @@ v1_router.register('v1', views.UserViewSet, basename='v1')
 
 urlpatterns = [
     path('v1/sms_request/', views.sms_request, name='sms_request'),
+    path('v1/activate_code/', views.activate_code, name='activate_code'),
 ]
 urlpatterns += v1_router.urls

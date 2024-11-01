@@ -1,0 +1,24 @@
+{% extends 'main/base.html' %}
+{% block content %}
+    <h1>Пользователь: {{ user }}</h1>
+    <h1>Инвайт-код: {{ user.referral_code }}</h1>
+    <h1>
+        Кем приглашен:
+        {% if user.invited_by %}
+            {{ user.invited_by }}
+        {% else %}
+            Никем
+        {% endif %}
+    </h1>
+    <h1>Кого пригласил: {{ user.invited_users }}</h1>
+    {% if not user.invite_code_used %}
+        <form action="">
+            <input type="text"
+                   name="referral_code"
+                   id="referral_code"
+                   class="form-control"
+                   placeholder="Введите инвайт-код">
+            <button type="submit" class="btn btn-primary">Использовать</button>
+        </form>
+    {% endif %}
+{% endblock content %}
