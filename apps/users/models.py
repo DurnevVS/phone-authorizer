@@ -54,7 +54,7 @@ class User(AbstractUser):
         blank=True,
         related_name='invited_users',
     )
-    invite_code_used = models.BooleanField(default=False)
+    referral_code_used = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS = []

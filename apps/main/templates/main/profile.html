@@ -1,24 +1,63 @@
 {% extends 'main/base.html' %}
 {% block content %}
-    <h1>Пользователь: {{ user }}</h1>
-    <h1>Инвайт-код: {{ user.referral_code }}</h1>
+    {# djlint: off #}
+    <div x-data="{
+        user: '',
+        code: '',
+        async getUser () {
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+                get: (searchParams, prop) => searchParams.get(prop),
+            });
+            let phone = params.phone
+            if (phone.startsWith('+')) {
+                phone = '%2B' + phone.slice(1)
+            }
+            response = await fetch('{% url "users-v1:profile" %}' + '?phone=' + phone).then(response => response.json())
+            .then(json => this.user = json)
+        },
+        async activateCode () {
+            await fetch('{% url "users-v1:activate_code" %}', { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                }, 
+                body: JSON.stringify({
+                    phone: this.user.phone,
+                    referral_code: this.code
+                })
+            }).then(() => location.reload())
+        }
+    }"
+    x-init="getUser">{# djlint: on #}
+    <h1>Профиль</h1>
     <h1>
-        Кем приглашен:
-        {% if user.invited_by %}
-            {{ user.invited_by }}
-        {% else %}
-            Никем
-        {% endif %}
+        Номер телефона:
+        <span x-text="user.phone"></span>
     </h1>
-    <h1>Кого пригласил: {{ user.invited_users }}</h1>
-    {% if not user.invite_code_used %}
-        <form action="">
-            <input type="text"
-                   name="referral_code"
-                   id="referral_code"
-                   class="form-control"
-                   placeholder="Введите инвайт-код">
-            <button type="submit" class="btn btn-primary">Использовать</button>
-        </form>
-    {% endif %}
+    <h1>
+        Мой инвайт-код:
+        <span x-text="user.referral_code"></span>
+    </h1>
+    <h1 x-show="user.invited_by">
+        Меня пригласил:
+        <span x-text="user.invited_by.phone"></span>
+    </h1>
+    <h1 x-show="user.invited_users.length > 0">Пригласил пользователей:</h1>
+    <ul>
+        <template x-for="user in user.invited_users">
+            <li x-text="user.phone"></li>
+        </template>
+    </ul>
+
+    <form x-show="!user.referral_code_used" @submit.prevent="activateCode">
+        <input type="text"
+               name="referral_code"
+               id="referral_code"
+               class="form-control"
+               placeholder="Инвайт-код"
+               x-model="code">
+        <button type="submit" class="btn btn-primary mt-3">Использовать инвайт-код</button>
+    </form>
+</div>
 {% endblock content %}

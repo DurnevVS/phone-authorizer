@@ -26,16 +26,24 @@ def sms_request(request: HttpRequest):
 
 @api_view(['POST'])
 def activate_code(request: HttpRequest):
+    print(request.data)
     serializer = ActivateReferralCodeSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
     user = get_user_model().objects.get(phone=serializer.validated_data['phone'])
-    referral_code = user.refferal_code
-    user.invited_by = get_user_model().objects.filter(refferal_code=referral_code).first()
+    referral_code = serializer.validated_data['referral_code']
+    user.invited_by = get_user_model().objects.get(referral_code__code=referral_code)
     user.referral_code_used = True
     user.save()
-
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def profile(request: HttpRequest):
+    phone = request.GET.get('phone')
+    if user := get_user_model().objects.filter(phone=phone).first():
+        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class UserViewSet(viewsets.ModelViewSet):

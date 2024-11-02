@@ -51,19 +51,64 @@
         ```json
         [
             {
+                "id": 4,
                 "phone": "+79236237525",
                 "referral_code": "nx5fa7",
                 "invited_users": [],
-                "invited_by": null
+                "invited_by": {
+                    "phone": "89236237525"
+                },
+                "referral_code_used": true
             },
             {
-                "phone": "86239237525",
+                "id": 12,
+                "phone": "89236237525",
                 "referral_code": "5EXuZx",
+                "invited_users": [
+                    {
+                        "phone": "+79236237525"
+                    },
+                    {
+                        "phone": "+76239237525"
+                    }
+                ],
+                "invited_by": null,
+                "referral_code_used": false
+            },
+            {
+                "id": 13,
+                "phone": "+76239237525",
+                "referral_code": "fuytEF",
                 "invited_users": [],
-                "invited_by": null
+                "invited_by": {
+                    "phone": "89236237525"
+                },
+                "referral_code_used": true
             }
         ] 
         ```
+
+    - GET /?phone=: Поиск пользователя по номеру телефона
+
+        Пример ответа:
+        ```json
+        {
+                "id": 12,
+                "phone": "89236237525",
+                "referral_code": "5EXuZx",
+                "invited_users": [
+                    {
+                        "phone": "+79236237525"
+                    },
+                    {
+                        "phone": "+76239237525"
+                    }
+                ],
+                "invited_by": null,
+                "referral_code_used": false
+        }
+        ```
+
     - POST /sms_request/: Запрос на получение смс-кода 
 
         Пример запроса: 
@@ -107,7 +152,8 @@
             "phone": "+79236237525",
             "referral_code": "ZuoK5K",
             "invited_users": [],
-            "invited_by": null
+            "invited_by": null,
+            "referral_code_used": false
         }
         ```
     - PUT /{id}/: Полное обновление профиля пользователя
@@ -119,7 +165,8 @@
             "phone": "89999999999",
             "referral_code": "ZuoK5K",
             "invited_users": [],
-            "invited_by": null
+            "invited_by": null,
+            "referral_code_used": false
         }
         ```
         Пример ответа:
@@ -129,7 +176,8 @@
             "phone": "89999999999",
             "referral_code": "ZuoK5K",
             "invited_users": [],
-            "invited_by": null
+            "invited_by": null,
+            "referral_code_used": false
         }
         ```
     - PATCH /{id}/: Частичное обновление профиля пользователя
@@ -148,7 +196,8 @@
             "phone": "+79236237525",
             "referral_code": "ZuoK5K",
             "invited_users": [],
-            "invited_by": null
+            "invited_by": null,
+            "referral_code_used": false
         }
         ```
     - DELETE /{id}/: Удаление пользователя
@@ -163,13 +212,27 @@
             "code": "nx5fa7"
         }
         ```
-        Пример ответа:
 
-        ```json
-        {
-            "phone": "+79236237525",
-            "code": "ZuoK5K",
-            "invited_users": [],
-            "invited_by": "89236237525",
-        }
-        ```
+## Frontend часть для тестирования функционала
+
+1. Страница Авторизации domain/
+    
+    - Форма запроса смс-кода
+    ![alt text](image.png)
+
+    - Имитация получения смс-кода с небольшой задержкой в виде алерта
+    ![alt text](image-1.png)
+
+    - Форма аутентификации по смс-коду
+    ![alt text](image-2.png)
+
+
+2. Страница профиля domanin/profile/?phone=
+
+    - После успешной аутентификации редирект на страницу профиля
+    ![alt text](image-3.png)
+
+    - Поле для ввода инвайт-кода отображается, если пользователь не вводил инвайт-код, в противном случае отображается номер телефона пользователя, чей инвайт-код был использован. Дополнительно отображается список пользователей, которые ввели инвайт-код текущего пользователя
+    ![alt text](image-4.png)
+
+## Запуск проекта

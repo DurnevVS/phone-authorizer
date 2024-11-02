@@ -3,12 +3,13 @@ from rest_framework.routers import DefaultRouter
 from . import views
 
 
-app_name = 'users'
-v1_router = DefaultRouter()
-v1_router.register('v1', views.UserViewSet, basename='v1')
+app_name = 'users-v1'
+router = DefaultRouter()
+router.register('users', views.UserViewSet, basename='users')
 
 urlpatterns = [
-    path('v1/sms_request/', views.sms_request, name='sms_request'),
-    path('v1/activate_code/', views.activate_code, name='activate_code'),
+    path('users/sms_request/', views.sms_request, name='sms_request'),
+    path('users/activate_code/', views.activate_code, name='activate_code'),
+    path('users/profile/', views.profile, name='profile'),
 ]
-urlpatterns += v1_router.urls
+urlpatterns += router.urls

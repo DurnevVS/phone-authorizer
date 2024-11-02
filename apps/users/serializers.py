@@ -2,15 +2,21 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
 
+class UserShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ['phone']
+
+
 class UserSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(min_length=11, max_length=12)
     referral_code = serializers.CharField(read_only=True, source='referral_code.code')
-    invited_users = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    invited_by = serializers.PrimaryKeyRelatedField(read_only=True)
+    invited_users = UserShortSerializer(many=True, read_only=True)
+    invited_by = UserShortSerializer(read_only=True)
 
     class Meta:
         model = get_user_model()
-        fields = ['phone', 'referral_code', 'invited_users', 'invited_by']
+        fields = ['id', 'phone', 'referral_code', 'invited_users', 'invited_by', 'referral_code_used']
 
 
 class UserAuthSerializer(serializers.ModelSerializer):
@@ -32,7 +38,7 @@ class SmSRequestSerializer(serializers.Serializer):
 
 
 class ActivateReferralCodeSerializer(serializers.Serializer):
-    code = serializers.CharField(min_length=6, max_length=6)
+    referral_code = serializers.CharField(min_length=6, max_length=6)
     phone = serializers.CharField(min_length=11, max_length=12)
 
     def validate_code(self, code):
