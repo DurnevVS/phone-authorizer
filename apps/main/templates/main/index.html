@@ -1,0 +1,142 @@
+{% extends 'main/base.html' %}
+{% block content %}
+    <div class="row w-50 h-100 m-auto align-content-center">
+        {# djlint: off #}
+        <div class="col-12" x-data="{ 
+            stage: 'sms_request',
+            phone_field: null,
+            sms_field: null,
+            code_field: null,
+            sms: null,
+            token: null,
+            user: {
+                phone: null,
+                referral_code: null,
+                invited_users: [],
+                invited_by: null
+            },
+            smsRequest () {
+                this.stage = 'auth_user'
+                fetch('{% url "users-v1:sms_request" %}', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    }, 
+                    body: JSON.stringify({
+                        phone: this.phone_field
+                    })
+                })
+                .then(response => response.json())
+                .then(json => this.sms = json.sms)
+                .then(() => alert('Код из СМС: ' + this.sms))
+            },
+            async getUser () {
+                if (this.user.phone.startsWith('+')) {
+                    this.user.phone = '%2B' + this.user.phone.slice(1)
+                }
+                response = await fetch('{% url "users-v1:profile" %}' + '?phone=' + this.user.phone, { 
+                    headers: { 'Authorization': 'Token ' + this.token } 
+                }).then(response => response.json()).then(json => this.user = json)
+            },
+            async authUser () {
+                let response = await fetch('{% url "users-v1:users-list" %}', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    }, 
+                    body: JSON.stringify({
+                        phone: this.phone_field,
+                        sms: this.sms_field
+                    })
+                })
+                response = await response.json()
+                alert(JSON.stringify(response))
+                this.stage = 'profile'
+                this.token = response.token
+                this.user.phone = this.phone_field
+                await this.getUser()
+            },
+            async activateCode () {
+                await fetch('{% url "users-v1:activate_code" %}', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Authorization': 'Token ' + this.token
+                    }, 
+                    body: JSON.stringify({
+                        phone: this.user.phone,
+                        referral_code: this.code_field
+                    })
+                })
+                await this.getUser()
+            }
+        }">
+        {# djlint: on #}
+
+        {# SMS REQUEST STAGE #}
+        <form x-show="stage === 'sms_request'" x-on:submit.prevent="smsRequest">
+            {% csrf_token %}
+            <input type="tel"
+                   name="phone"
+                   id="phone"
+                   class="form-control"
+                   placeholder="Номер телефона"
+                   x-model="phone_field">
+            <button type="submit" class="btn btn-primary mt-3">Получить код</button>
+        </form>
+
+        {# AUTH USER STAGE #}
+        <form x-show="stage === 'auth_user'" x-on:submit.prevent="authUser" x-cloak>
+            {% csrf_token %}
+            <input type="tel"
+                   name="phone"
+                   id="phone"
+                   class="form-control"
+                   placeholder="Номер телефона"
+                   x-model="phone_field">
+            <input type="text"
+                   name="sms"
+                   id="sms"
+                   class="form-control mt-3"
+                   placeholder="Код из СМС"
+                   x-model="sms_field">
+            <button type="submit" class="btn btn-primary mt-3">Зарегистрироваться</button>
+        </form>
+
+        {# PROFILE STAGE #}
+        <div x-show="stage === 'profile'" x-cloak>
+            <h1>Ваш профиль:</h1>
+            <h1>
+                Номер телефона:
+                <span x-text="user.phone"></span>
+            </h1>
+            <h1>
+                Мой инвайт-код:
+                <span x-text="user.referral_code"></span>
+            </h1>
+            <h1 x-show="user.invited_by">
+                Меня пригласил:
+                <span x-text="user.invited_by.phone"></span>
+            </h1>
+            <h1 x-show="user.invited_users.length > 0">Пригласил пользователей:</h1>
+            <ul>
+                <template x-for="user in user.invited_users">
+                    <li x-text="user.phone"></li>
+                </template>
+            </ul>
+            <form x-show="!user.referral_code_used" @submit.prevent="activateCode">
+                <input type="text"
+                       name="referral_code"
+                       id="referral_code"
+                       class="form-control"
+                       placeholder="Инвайт-код"
+                       x-model="code_field">
+                <button type="submit" class="btn btn-primary mt-3">Использовать инвайт-код</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
